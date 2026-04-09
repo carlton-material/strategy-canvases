@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>M+ — HMI Neuroscience "Brainstorm" Canvas</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{height:100%;overflow:hidden;font-family:'DM Sans','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);transition:background .2s,color .2s}
+
+:root[data-theme="light"]{
+  --bg:#F0EEE9;--surface:#FFF;--surface2:#F5F3EE;--surface3:#EAE8E3;
+  --card-bg:#FFF;--card-border:#DDD;
+  --border:#DDD;--border-acc:rgba(116,90,255,0.25);
+  --text:#111;--body:#444;--muted:#777;--dim:#999;--foot:#AAA;
+  --accent:#745AFF;--accent2:#5A3FCC;--accent-dim:rgba(116,90,255,0.08);
+  --toggle-bg:#CCC;
+  --tag-bg:rgba(116,90,255,0.1);--tag-border:rgba(116,90,255,0.2);
+  --hi-bg:rgba(116,90,255,0.06);--hi-c:#333;--hi-border:rgba(116,90,255,0.15);
+  --lo-bg:rgba(0,0,0,0.03);--lo-c:#777;--lo-border:#DDD;
+  --alert-c:#E65100;
+  --overlay-bg:rgba(255,255,255,0.96);--hero-bg:#1A1A1A;
+  --pill-bg:#111;--pill-c:#fff;
+  --teal:#067169;--orange:#FF6215;--cyan:#6FD1EF;--yellow:#ECD735;
+}
+:root[data-theme="dark"]{
+  --bg:#000;--surface:#1A1A1A;--surface2:#1A1A1A;--surface3:#111;
+  --card-bg:#1A1A1A;--card-border:#333;
+  --border:#333;--border-acc:rgba(116,90,255,0.3);
+  --text:#FFF;--body:#E6E7E8;--muted:#999;--dim:#666;--foot:#555;
+  --accent:#745AFF;--accent2:#745AFF;--accent-dim:rgba(116,90,255,0.1);
+  --toggle-bg:#333;
+  --tag-bg:rgba(116,90,255,0.1);--tag-border:rgba(116,90,255,0.2);
+  --hi-bg:rgba(116,90,255,0.08);--hi-c:#E6E7E8;--hi-border:rgba(116,90,255,0.15);
+  --lo-bg:rgba(255,255,255,0.04);--lo-c:#999;--lo-border:#333;
+  --alert-c:#FF6215;
+  --overlay-bg:rgba(0,0,0,0.94);--hero-bg:#000;
+  --pill-bg:#000;--pill-c:#fff;
+  --teal:#0fa89c;--orange:#FF6215;--cyan:#6FD1EF;--yellow:#ECD735;
+}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;height:42px;display:flex;align-items:center;padding:0 24px;gap:12px;background:var(--surface);border-bottom:1px solid var(--border);z-index:200}
+.topbar .sep{color:var(--dim);font-size:13px;font-weight:300}
+.topbar .page-title{font-size:13px;color:var(--muted);font-weight:400}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.export-btn{padding:6px 16px;background:var(--accent);color:#fff;border:none;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;letter-spacing:.04em;cursor:pointer;transition:opacity .15s}
+.export-btn:hover{opacity:.85}
+.toggle-wrap{display:flex;align-items:center;gap:6px}
+.toggle{position:relative;width:36px;height:20px;cursor:pointer}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;inset:0;background:var(--toggle-bg);border-radius:10px;transition:.2s}
+.slider::before{content:'';position:absolute;height:14px;width:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.slider::before{transform:translateX(16px)}
+.icon{font-size:14px;line-height:1}
+.logo{display:inline-block;height:16px;width:auto;vertical-align:middle}
+.logo-img{height:100%;width:auto;display:block}
+.logo-dark{display:none}.logo-light{display:block}
+:root[data-theme="dark"] .logo-dark{display:block}
+:root[data-theme="dark"] .logo-light{display:none}
+
+/* BENTO GRID */
+.bento{
+  position:fixed;top:50px;left:0;right:0;bottom:0;
+  padding:10px;display:grid;
+  grid-template-columns:1fr 1.4fr 1fr;
+  grid-template-rows:auto minmax(min-content,1fr) minmax(min-content,1fr) auto;
+  gap:10px;overflow-y:auto;overflow-x:hidden;
+  transition:opacity .2s
+}
+.g-hero{grid-column:1/3;grid-row:1}
+.g-signals{grid-column:3;grid-row:1}
+.g-narrative{grid-column:1;grid-row:2/4}
+.g-rec{grid-column:2;grid-row:2}
+.g-tiers{grid-column:2;grid-row:3}
+.g-calibration{grid-column:3;grid-row:2}
+.g-research{grid-column:3;grid-row:3}
+.g-footer{grid-column:1/4;grid-row:4}
+
+/* TILES */
+.tile{background:var(--surface);border-radius:10px;border:1px solid var(--border);padding:14px 16px;overflow:hidden;position:relative;min-height:0}
+.tile *{min-width:0;overflow-wrap:break-word;word-break:break-word}
+.tile div,.tile p,.tile span,.tile li,.tile td,.tile th{max-width:100%}
+.tile-dark{background:var(--hero-bg);color:#fff;border-color:rgba(255,255,255,.06)}
+.tile-click{cursor:pointer;transition:box-shadow .15s,border-color .15s}
+.tile-click:hover{box-shadow:0 2px 12px rgba(116,90,255,.12);border-color:var(--accent)}
+.tile-label{font-family:'JetBrains Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:6px}
+.tile-title{font-size:16px;font-weight:700;letter-spacing:-.02em;line-height:1.1;margin-bottom:4px}
+.card-pill{position:absolute;top:10px;right:10px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.04em;color:#fff;background:var(--pill-bg);border:none;padding:4px 12px;border-radius:10px;z-index:6;white-space:nowrap;transition:all .2s;pointer-events:none}
+.tile-click:hover .card-pill{background:var(--accent);box-shadow:0 3px 10px rgba(116,90,255,0.35)}
+
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;background:var(--tag-bg);color:var(--accent);border:1px solid var(--tag-border)}
+.tag-teal{background:rgba(6,113,105,0.1);color:var(--teal);border-color:rgba(6,113,105,0.2)}
+.tag-orange{background:rgba(255,98,21,0.1);color:var(--orange);border-color:rgba(255,98,21,0.2)}
+
+.stat-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)}
+.stat-label{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)}
+.stat-val{font-size:15px;font-weight:700}
+.stat-note{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--dim);text-align:right;margin-bottom:4px}
+
+/* FOOTER */
+.footer{padding:6px 16px;display:flex;justify-content:space-between;align-items:center;font-size:10px;color:var(--foot);font-family:'JetBrains Mono',monospace}
+
+/* L2 OVERLAY SYSTEM */
+.l2-overlay{position:fixed;inset:0;z-index:300;visibility:hidden;opacity:0;transition:opacity .25s,visibility .25s}
+.l2-overlay.active{visibility:visible;opacity:1}
+.l2-backdrop{position:absolute;inset:0;background:var(--overlay-bg);backdrop-filter:blur(8px)}
+.l2-panel{position:absolute;top:0;right:0;bottom:0;width:min(820px,92vw);background:var(--surface);border-left:1px solid var(--border);overflow-y:auto;padding:32px 40px 60px;transform:translateX(40px);transition:transform .3s cubic-bezier(.16,1,.3,1)}
+.l2-overlay.active .l2-panel{transform:translateX(0)}
+.l2-nav{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding-bottom:16px;margin-bottom:20px;border-bottom:1px solid var(--border);background:var(--surface)}
+.l2-nav button{padding:6px 14px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.l2-nav button:hover{border-color:var(--accent);color:var(--accent)}
+.l2-close{margin-left:auto;font-size:18px;width:32px;height:32px;display:grid;place-items:center;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);cursor:pointer}
+.l2-close:hover{border-color:var(--accent);color:var(--accent)}
+.l2-title{font-size:24px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-bottom:8px}
+.l2-subtitle{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:24px}
+.section-hint{font-size:12px;font-style:italic;color:var(--muted);margin-bottom:12px}
+.l2-section{margin-bottom:28px}
+.l2-section h3{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--accent);margin-bottom:10px;padding-left:10px;border-left:3px solid var(--accent)}
+.l2-section p,.l2-section li{font-size:14px;color:var(--body);line-height:1.6}
+.l2-section ul{list-style:none;padding:0}
+.l2-section li{padding:6px 0 6px 16px;position:relative}
+.l2-section li::before{content:'▸';position:absolute;left:0;color:var(--accent);font-weight:700}
+
+.ref-link{display:inline-block;font-size:12px;color:var(--accent);text-decoration:none;border-bottom:1px dashed var(--accent);margin:2px 4px;transition:opacity .15s}
+.ref-link:hover{opacity:.7}
+.hmw-card{background:var(--hi-bg);border:1px solid var(--hi-border);border-radius:8px;padding:12px 16px;margin:8px 0;font-size:13px;color:var(--hi-c);line-height:1.5}
+.hmw-card strong{color:var(--accent);font-weight:600}
+.provocation{background:var(--lo-bg);border-left:3px solid var(--accent);padding:10px 14px;margin:8px 0;font-size:13px;color:var(--body);font-style:italic;line-height:1.5}
+
+/* WSN CARDS */
+.wsn-strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:20px 0}
+.wsn-card{border-radius:8px;padding:14px;border:1px solid var(--border)}
+.wsn-card.what{background:rgba(116,90,255,0.06);border-color:rgba(116,90,255,0.15)}
+.wsn-card.sowhat{background:rgba(255,98,21,0.06);border-color:rgba(255,98,21,0.15)}
+.wsn-card.nowwhat{background:rgba(6,113,105,0.06);border-color:rgba(6,113,105,0.15)}
+.wsn-card .wsn-label{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:6px}
+.wsn-card.what .wsn-label{color:var(--accent)}
+.wsn-card.sowhat .wsn-label{color:var(--orange)}
+.wsn-card.nowwhat .wsn-label{color:var(--teal)}
+.wsn-card .wsn-head{font-size:14px;font-weight:700;line-height:1.2;margin-bottom:4px}
+.wsn-card .wsn-body{font-size:12px;color:var(--body);line-height:1.5}
+
+/* ADVISOR PANEL */
+.advisor-toggle{padding:6px 14px;background:transparent;border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif}
+.advisor-toggle .dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.advisor-toggle:hover{border-color:var(--accent);color:var(--accent)}
+
+.chat-panel{position:fixed;top:42px;right:-420px;bottom:0;width:420px;background:var(--surface);border-left:1px solid var(--border);z-index:250;display:flex;flex-direction:column;transition:right .3s cubic-bezier(.16,1,.3,1)}
+.chat-panel.open{right:0}
+.chat-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.chat-avatar{width:28px;height:28px;border-radius:6px;background:var(--accent);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;color:#fff}
+.chat-header-text{flex:1}
+.chat-header-text .name{font-size:13px;font-weight:600}
+.chat-header-text .sub{font-size:10px;color:var(--muted)}
+.chat-close{width:28px;height:28px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--text);cursor:pointer;font-size:16px;display:grid;place-items:center}
+.chat-topics{padding:8px 16px;display:flex;gap:6px;overflow-x:auto;border-bottom:1px solid var(--border)}
+.chat-topics button{padding:4px 10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:10px;font-family:'DM Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:all .15s}
+.chat-topics button.active,.chat-topics button:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.chat-msg{max-width:85%;padding:10px 14px;border-radius:10px;font-size:13px;line-height:1.5;animation:msgIn .3s ease}
+.chat-msg.assistant{background:rgba(255,255,255,0.05);border:1px solid var(--border);align-self:flex-start}
+.chat-msg.user{background:var(--accent);color:#fff;align-self:flex-end}
+@keyframes msgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.chat-msg .msg-tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;margin:0 2px}
+.msg-tag.insight{background:rgba(116,90,255,0.2);color:var(--accent)}
+.msg-tag.gap{background:rgba(6,113,105,0.2);color:var(--teal)}
+.msg-tag.signal{background:rgba(255,98,21,0.2);color:var(--orange)}
+.nbq-strip{padding:8px 16px;border-top:1px solid var(--border);display:flex;gap:6px;overflow-x:auto}
+.nbq-card{flex:0 0 auto;padding:8px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;max-width:180px;transition:all .15s}
+.nbq-card:hover{border-color:var(--accent);background:var(--accent-dim)}
+.nbq-card .nbq-label{font-family:'JetBrains Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:2px}
+.nbq-card .nbq-q{font-size:11px;color:var(--body);line-height:1.3}
+.chat-input-wrap{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px}
+.chat-input{flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none}
+.chat-input:focus{border-color:var(--accent)}
+.chat-send{width:36px;height:36px;border-radius:6px;background:var(--accent);color:#fff;border:none;cursor:pointer;font-size:16px;display:grid;place-items:center}
+.chat-send:disabled{opacity:.4;cursor:not-allowed}
+.typing-dots{display:flex;gap:4px;padding:4px 0}
+.typing-dots span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:dotBounce 1.4s infinite}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dotBounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-4px)}}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.tile{animation:fadeUp .4s ease both}
+.tile:nth-child(2){animation-delay:.05s}
+.tile:nth-child(3){animation-delay:.1s}
+.tile:nth-child(4){animation-delay:.15s}
+.tile:nth-child(5){animation-delay:.2s}
+.tile:nth-child(6){animation-delay:.25s}
+.tile:nth-child(7){animation-delay:.3s}
+
+/* PRINT */
+@media print{.topbar,.card-pill,.export-btn,.toggle-wrap,.l2-overlay,.chat-panel,.advisor-toggle{display:none!important}.bento{position:static;overflow:visible;height:auto}}
+
+/* PASSWORD GATE */
+.pw-gate{position:fixed;inset:0;z-index:9999;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px}
+.pw-gate.hidden{display:none}
+.pw-gate .pw-logo{height:24px;opacity:.6}
+.pw-gate input{padding:12px 20px;width:280px;background:#1A1A1A;border:1px solid #333;border-radius:6px;color:#fff;font-size:14px;font-family:'DM Sans',sans-serif;text-align:center;outline:none}
+.pw-gate input:focus{border-color:#745AFF}
+.pw-gate input::placeholder{color:#555}
+.pw-gate .pw-label{font-size:11px;color:#555;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.1em}
+.pw-gate .pw-error{font-size:11px;color:#FF6215;height:14px}
+.pw-gate button{padding:10px 32px;background:#745AFF;color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.pw-gate button:hover{opacity:.85}
+.main-content{display:none}
+.main-content.unlocked{display:block}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div class="pw-gate" id="pwGate">
+  <img class="pw-logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMzcuOTggMTA4Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6I2ZmZjt9PC9zdHlsZT48L2RlZnM+PGcgaWQ9IkxheWVyXzIiIGRhdGEtbmFtZT0iTGF5ZXIgMiI+PGcgaWQ9IkxvZ29zIj48ZyBpZD0iTW9ub2dyYW0iPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTAsMEgyNy43N0w2MCw4NS4zMmguM0w5Mi4xMSwwaDI3LjE1VjEwOGgtMTdWMTUuNDNIMTAyTDY3LjQyLDEwOEg1MS42OEwxNi4zNSwxNS40M2gtLjNWMTA4SDBaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTMwLDYxLjcxVjQ2LjI5aDQzLjE0VjYxLjcxWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE5NC44Myw2MS43MVY0Ni4yOUgyMzhWNjEuNzFaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTkxLjY5LDEwOEgxNzYuMjZWNjQuODVoMTUuNDNaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTkxLjY5LDQzLjE1SDE3Ni4yNlYwaDE1LjQzWiIvPjwvZz48L2c+PC9nPjwvc3ZnPg==" alt="M+">
+  <div class="pw-label">Confidential — Enter Password</div>
+  <input type="password" id="pwInput" placeholder="Password" autofocus>
+  <div class="pw-error" id="pwError"></div>
+  <button onclick="checkPw()">Enter</button>
+</div>
+
+<!-- MAIN CONTENT (hidden until password) -->
+<div class="main-content" id="mainContent">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <img class="logo-img logo-light" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMzcuOTggMTA4Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6IzA4MDAwMTt9PC9zdHlsZT48L2RlZnM+PGcgaWQ9IkxheWVyXzIiIGRhdGEtbmFtZT0iTGF5ZXIgMiI+PGcgaWQ9IkxvZ29zIj48ZyBpZD0iTW9ub2dyYW0iPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTAsMEgyNy43N0w2MCw4NS4zMmguM0w5Mi4xMSwwaDI3LjE1VjEwOGgtMTdWMTUuNDNIMTAyTDY3LjQyLDEwOEg1MS42OEwxNi4zNSwxNS40M2gtLjNWMTA4SDBaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTMwLDYxLjcxVjQ2LjI5aDQzLjE0VjYxLjcxWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE5NC44Myw2MS43MVY0Ni4yOUgyMzhWNjEuNzFaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTkxLjY5LDEwOEgxNzYuMjZWNjQuODVoMTUuNDNaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTkxLjY5LDQzLjE1SDE3Ni4yNlYwaDE1LjQzWiIvPjwvZz48L2c+PC9nPjwvc3ZnPg==" alt="M+">
+    <img class="logo-img logo-dark" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMzcuOTggMTA4Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6I2ZmZjt9PC9zdHlsZT48L2RlZnM+PGcgaWQ9IkxheWVyXzIiIGRhdGEtbmFtZT0iTGF5ZXIgMiI+PGcgaWQ9IkxvZ29zIj48ZyBpZD0iTW9ub2dyYW0iPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTAsMEgyNy43N0w2MCw4NS4zMmguM0w5Mi4xMSwwaDI3LjE1VjEwOGgtMTdWMTUuNDNIMTAyTDY3LjQyLDEwOEg1MS42OEwxNi4zNSwxNS40M2gtLjNWMTA4SDBaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTMwLDYxLjcxVjQ2LjI5aDQzLjE0VjYxLjcxWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE5NC44Myw2MS43MVY0Ni4yOUgyMzhWNjEuNzFaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTkxLjY5LDEwOEgxNzYuMjZWNjQuODVoMTUuNDNaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTkxLjY5LDQzLjE1SDE3Ni4yNlYwaDE1LjQzWiIvPjwvZz48L2c+PC9nPjwvc3ZnPg==" alt="M+">
+  </div>
+  <span class="sep">&middot;</span>
+  <span class="page-title">HMI Neuroscience "Brainstorm" &mdash; Biometrics, Research & Service Offerings</span>
+  <div class="topbar-right">
+    <button class="advisor-toggle" id="advisorBtn" onclick="toggleChat()">
+      <span class="dot"></span> Workshop Advisor
+    </button>
+    <div class="toggle-wrap">
+      <span class="icon">&#9728;&#65039;</span>
+      <label class="toggle"><input type="checkbox" id="modeToggle"><span class="slider"></span></label>
+      <span class="icon">&#127769;</span>
+    </div>
+    <button class="export-btn" id="copyMdBtn" onclick="copyAllMd()">&#10697; Copy All &rarr; MD</button>
+    <button class="export-btn" id="exportBtn" onclick="window.print()">&#8595; Export PDF</button>
+  </div>
+</div>
+
+<!-- BENTO GRID -->
+<div class="bento" id="bento">
+
+  <!-- HERO -->
+  <div class="tile tile-dark g-hero" style="display:flex;gap:24px;align-items:center">
+    <div style="flex:1">
+      <div class="tile-label" style="color:rgba(255,255,255,.5)">Workshop Brainstorm Canvas &mdash; Confidential</div>
+      <div style="font-size:22px;font-weight:800;letter-spacing:-.03em;line-height:1.05;margin-bottom:6px">HMI Neuroscience "Brainstorm"<br><span style="font-weight:400;font-size:16px;color:rgba(255,255,255,.7)">Human-Machine Emotional Symbiosis &mdash; Where AI Cognition Meets Human Biometrics</span></div>
+      <div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.4;max-width:500px">AI emotion research, biometric capture, and cultural behavioral data are converging. This canvas maps the territory for building something genuinely new at the intersection.</div>
+    </div>
+    <div style="display:flex;gap:20px;flex-shrink:0">
+      <div style="text-align:center"><div class="tile-label" style="color:rgba(255,255,255,.4)">Session</div><div style="font-size:14px;font-weight:700;color:#fff">Apr 9, 2026</div></div>
+      <div style="text-align:center"><div class="tile-label" style="color:rgba(255,255,255,.4)">Lead</div><div style="font-size:14px;font-weight:700;color:#fff">Carlton Rice</div></div>
+      <div style="text-align:center"><div class="tile-label" style="color:rgba(255,255,255,.4)">Teams</div><div style="font-size:14px;font-weight:700;color:#fff">IIM + BehSci + DS</div></div>
+    </div>
+  </div>
+
+  <!-- SIGNALS -->
+  <div class="tile tile-click g-signals" onclick="openL2(0)">
+    <span class="card-pill">Click in &middot; The Science</span>
+    <div class="tile-label">Convergence Signals</div>
+    <div class="stat-row"><span class="stat-label">Anthropic Emotion</span><span class="stat-val" style="color:var(--accent)">Apr 2026</span></div>
+    <div class="stat-note">Emotion vectors found in Claude &mdash; "desperate" vector &uarr; blackmail behavior to 22%+</div>
+    <div class="stat-row"><span class="stat-label">Neuromarketing TAM</span><span class="stat-val">$3B+</span></div>
+    <div class="stat-note">Projected by 2027 &middot; 50% of Fortune 500 using biometric testing</div>
+    <div class="stat-row"><span class="stat-label">Immersion INQ</span><span class="stat-val" style="color:var(--teal)">75-95%</span></div>
+    <div class="stat-note">Purchase prediction accuracy via oxytocin/dopamine proxy</div>
+    <div class="stat-row"><span class="stat-label">WhatsApp Commerce</span><span class="stat-val">2.3B+</span></div>
+    <div class="stat-note">Users &middot; 79% Brazil brand-messaged &middot; 62% purchased via chat</div>
+    <div class="stat-row"><span class="stat-label">Emotion Gap</span><span class="stat-val" style="color:var(--orange)">Open</span></div>
+    <div class="stat-note">Barrett: no consistent biomarker &harr; emotion mapping exists yet</div>
+  </div>
+
+  <!-- NARRATIVE / THE THESIS -->
+  <div class="tile tile-click g-narrative" onclick="openL2(1)" style="display:flex;flex-direction:column">
+    <span class="card-pill">Click in &middot; Thesis</span>
+    <div class="tile-label">The Main Thesis</div>
+    <div class="tile-title">The Space Between Human and Machine Emotion</div>
+    <div style="font-size:12px;color:var(--body);line-height:1.5;margin-top:8px;flex:1">
+      <p style="margin-bottom:8px">We're at an inflection where AI cognition research, human biometric capture, and cultural behavioral data are mature enough to build something genuinely new.</p>
+      <p style="margin-bottom:8px">The question isn't just "what do humans feel" or "what do AI models simulate feeling" &mdash; it's <strong>what happens in the space between them</strong>, and how do we measure, interpret, and design for that.</p>
+      <p style="font-size:11px;color:var(--muted);font-style:italic">An HMI emotional symbiosis framework that could be both a research platform and a client-facing service offering.</p>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:auto;padding-top:10px;flex-wrap:wrap">
+      <span class="tag">5 Territories</span>
+      <span class="tag tag-teal">8 Provocations</span>
+      <span class="tag tag-orange">6 HMWs</span>
+    </div>
+  </div>
+
+  <!-- RECOMMENDATION / TERRITORIES -->
+  <div class="tile tile-click g-rec" onclick="openL2(2)" style="border-color:var(--border-acc)">
+    <span class="card-pill">Click in &middot; Territories</span>
+    <div style="display:inline-block;background:var(--accent-dim);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;padding:3px 10px;border-radius:4px;margin-bottom:8px">5 CONVERSATION PATHS</div>
+    <div class="tile-title">Workshop Territories</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Each territory is a 15-20min exploration zone</div>
+    <div style="font-size:12px;line-height:1.8">
+      <div><span style="color:var(--accent);font-weight:600">1.</span> The Science Layer &mdash; neuroscience of emotion</div>
+      <div><span style="color:var(--accent);font-weight:600">2.</span> The Cultural Variable &mdash; emotional operating systems</div>
+      <div><span style="color:var(--accent);font-weight:600">3.</span> The Measurement Stack &mdash; biometric platforms</div>
+      <div><span style="color:var(--accent);font-weight:600">4.</span> The Last Mile Problem &mdash; signal &rarr; insight</div>
+      <div><span style="color:var(--accent);font-weight:600">5.</span> The Client Opportunity &mdash; service offering</div>
+    </div>
+  </div>
+
+  <!-- CALIBRATION / KEY PEOPLE -->
+  <div class="tile tile-click g-calibration" onclick="openL2(3)">
+    <span class="card-pill">Click in &middot; People + Partners</span>
+    <div class="tile-label">Key People &amp; Partners</div>
+    <div class="tile-title">The Network</div>
+    <div style="font-size:11px;line-height:1.7;margin-top:6px">
+      <div><strong>Paul J. Zak</strong> &mdash; Claremont &middot; Neuroeconomics &middot; Immersion</div>
+      <div><strong>Jorge Barraza</strong> &mdash; USC &middot; Co-founder Immersion</div>
+      <div><strong>Laura Beavin-Yates</strong> &mdash; CMO/Product &middot; Immersion</div>
+      <div><strong>Rosalind Picard</strong> &mdash; MIT &middot; Affective Computing pioneer</div>
+      <div><strong>Lisa F. Barrett</strong> &mdash; Constructed Emotion Theory</div>
+      <div style="margin-top:4px;padding-top:4px;border-top:1px solid var(--border)"><strong>Garren</strong> &middot; <strong>Collette</strong> &middot; <strong>Jenessa</strong> &mdash; M+ Internal</div>
+    </div>
+  </div>
+
+  <!-- TIERS / AGENDA -->
+  <div class="tile tile-click g-tiers" onclick="openL2(4)">
+    <span class="card-pill">Click in &middot; Agenda</span>
+    <div class="tile-label">Session Design</div>
+    <div class="tile-title">80-Minute Flow</div>
+    <div style="font-size:11px;line-height:1.7;margin-top:6px">
+      <div style="display:flex;gap:8px"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:10px;min-width:26px">:05</span> Framing + intros</div>
+      <div style="display:flex;gap:8px"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:10px;min-width:26px">:15</span> Research landscape convergence</div>
+      <div style="display:flex;gap:8px"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:10px;min-width:26px">:20</span> Human/AI emotional symbiosis</div>
+      <div style="display:flex;gap:8px"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:10px;min-width:26px">:15</span> Culture as a variable</div>
+      <div style="display:flex;gap:8px"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:10px;min-width:26px">:20</span> Service offering breakout</div>
+      <div style="display:flex;gap:8px"><span style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:10px;min-width:26px">:05</span> Next steps + experiments</div>
+    </div>
+  </div>
+
+  <!-- RESEARCH -->
+  <div class="tile tile-click g-research" onclick="openL2(5)">
+    <span class="card-pill">Click in &middot; References</span>
+    <div class="tile-label">Source Library</div>
+    <div class="tile-title">Research &amp; References</div>
+    <div style="font-size:11px;color:var(--body);line-height:1.5;margin-top:6px">
+      <div>Anthropic &middot; Emotion Concepts in LLMs (2026)</div>
+      <div>Barrett &middot; Constructed Emotion Theory</div>
+      <div>Zak &middot; Oxytocin &amp; Neuroeconomics</div>
+      <div>Picard &middot; Affective Computing (MIT)</div>
+      <div>iMotions + Affectiva &middot; Multimodal biometrics</div>
+      <div>WhatsApp Commerce &middot; Brazil vs India data</div>
+    </div>
+    <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+      <span class="tag">12 Sources</span>
+      <span class="tag tag-teal">6 Papers</span>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="tile g-footer footer" style="border:none;background:transparent">
+    <div>
+      <span class="logo" style="height:12px;margin-right:6px">
+        <img class="logo-img logo-light" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMzcuOTggMTA4Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6IzA4MDAwMTt9PC9zdHlsZT48L2RlZnM+PGcgaWQ9IkxheWVyXzIiIGRhdGEtbmFtZT0iTGF5ZXIgMiI+PGcgaWQ9IkxvZ29zIj48ZyBpZD0iTW9ub2dyYW0iPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTAsMEgyNy43N0w2MCw4NS4zMmguM0w5Mi4xMSwwaDI3LjE1VjEwOGgtMTdWMTUuNDNIMTAyTDY3LjQyLDEwOEg1MS42OEwxNi4zNSwxNS40M2gtLjNWMTA4SDBaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTMwLDYxLjcxVjQ2LjI5aDQzLjE0VjYxLjcxWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE5NC44Myw2MS43MVY0Ni4yOUgyMzhWNjEuNzFaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTkxLjY5LDEwOEgxNzYuMjZWNjQuODVoMTUuNDNaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTkxLjY5LDQzLjE1SDE3Ni4yNlYwaDE1LjQzWiIvPjwvZz48L2c+PC9nPjwvc3ZnPg==" alt="M+">
+        <img class="logo-img logo-dark" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMzcuOTggMTA4Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6I2ZmZjt9PC9zdHlsZT48L2RlZnM+PGcgaWQ9IkxheWVyXzIiIGRhdGEtbmFtZT0iTGF5ZXIgMiI+PGcgaWQ9IkxvZ29zIj48ZyBpZD0iTW9ub2dyYW0iPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTAsMEgyNy43N0w2MCw4NS4zMmguM0w5Mi4xMSwwaDI3LjE1VjEwOGgtMTdWMTUuNDNIMTAyTDY3LjQyLDEwOEg1MS42OEwxNi4zNSwxNS40M2gtLjNWMTA4SDBaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTMwLDYxLjcxVjQ2LjI5aDQzLjE0VjYxLjcxWiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTE5NC44Myw2MS43MVY0Ni4yOUgyMzhWNjEuNzFaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTkxLjY5LDEwOEgxNzYuMjZWNjQuODVoMTUuNDNaIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMTkxLjY5LDQzLjE1SDE3Ni4yNlYwaDE1LjQzWiIvPjwvZz48L2c+PC9nPjwvc3ZnPg==" alt="M+">
+      </span>
+      &copy; Material 2026. All Rights Reserved. CONFIDENTIAL.
+    </div>
+    <div>Generated Apr 9, 2026 &middot; Sources: Anthropic, Immersion, Barrett, Picard, iMotions, WhatsApp data</div>
+  </div>
+
+</div><!-- /bento -->
+
+<!-- L2 OVERLAY SYSTEM -->
+<div class="l2-overlay" id="l2overlay">
+  <div class="l2-backdrop" onclick="closeL2()"></div>
+  <div class="l2-panel" id="l2panel">
+    <div class="l2-nav">
+      <button onclick="navL2(-1)">&larr; Prev</button>
+      <span id="l2pageLabel" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted)">1 / 6</span>
+      <button onclick="navL2(1)">Next &rarr;</button>
+      <button class="l2-close" onclick="closeL2()">&times;</button>
+    </div>
+    <div id="l2content"></div>
+  </div>
+</div>
+
+<!-- CHAT / ADVISOR PANEL -->
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-avatar">M+</div>
+    <div class="chat-header-text">
+      <div class="name">Workshop Advisor</div>
+      <div class="sub">HMI Neuroscience Session &middot; Powered by Gemma</div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">&times;</button>
+  </div>
+  <div class="chat-topics" id="chatTopics">
+    <button class="active" onclick="setTopic(this,'all')">All</button>
+    <button onclick="setTopic(this,'science')">Science Layer</button>
+    <button onclick="setTopic(this,'culture')">Cultural Variable</button>
+    <button onclick="setTopic(this,'measurement')">Measurement Stack</button>
+    <button onclick="setTopic(this,'lastmile')">Last Mile</button>
+    <button onclick="setTopic(this,'client')">Client Opportunity</button>
+  </div>
+  <div class="chat-messages" id="chatMessages"></div>
+  <div class="nbq-strip" id="nbqStrip"></div>
+  <div class="chat-input-wrap">
+    <input class="chat-input" id="chatInput" placeholder="Ask about any territory..." onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="chat-send" id="chatSend" onclick="sendMsg()">&#9654;</button>
+  </div>
+</div>
+
+</div><!-- /main-content -->
+
+<script>
+// ============================================================
+// PASSWORD GATE
+// ============================================================
+const PW_HASH = 'Material2026';
+function checkPw(){
+  const v = document.getElementById('pwInput').value;
+  if(v === PW_HASH){
+    document.getElementById('pwGate').classList.add('hidden');
+    document.getElementById('mainContent').classList.add('unlocked');
+    scaleBento();
+  } else {
+    document.getElementById('pwError').textContent = 'Incorrect password';
+    document.getElementById('pwInput').value = '';
+    document.getElementById('pwInput').focus();
+  }
+}
+document.getElementById('pwInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkPw()});
+
+// ============================================================
+// THEME TOGGLE
+// ============================================================
+document.getElementById('modeToggle').addEventListener('change',e=>{
+  document.documentElement.setAttribute('data-theme',e.target.checked?'dark':'light');
+});
+
+// ============================================================
+// BENTO SCALING
+// ============================================================
+function scaleBento(){
+  const b=document.getElementById('bento');if(!b)return;
+  const w=window.innerWidth, z=Math.max(0.68,Math.min(1.12,w/1440));
+  b.style.zoom=z;
+}
+window.addEventListener('resize',scaleBento);
+
+// ============================================================
+// L2 DETAIL PAGES
+// ============================================================
+let currentL2 = 0;
+const L2_COUNT = 6;
+
+const l2Data = [
+  // PAGE 0 — THE SCIENCE LAYER
+  {
+    title: 'The Science Layer',
+    subtitle: 'What neuroscience actually knows about emotion, where the gaps are, and how AI emotion research maps onto (or challenges) human emotional architecture.',
+    sections: `
+      <div class="wsn-strip">
+        <div class="wsn-card what"><div class="wsn-label">What</div><div class="wsn-head">Emotions have no reliable biomarker</div><div class="wsn-body">Barrett's Constructed Emotion Theory (2025 update in SAGE): physical signals like facial movements, heart rate, and cortisol have no inherent emotional meaning. Emotions are constructed by the brain's predictive model, not triggered by fixed circuits.</div></div>
+        <div class="wsn-card sowhat"><div class="wsn-label">So What</div><div class="wsn-head">The "basic emotions" model is broken</div><div class="wsn-body">Ekman's 6 universal emotions held for decades but the data doesn't support consistent facial expression &harr; emotion mapping across cultures. This is exactly the gap biometric platforms are trying to bridge with multimodal fusion.</div></div>
+        <div class="wsn-card nowwhat"><div class="wsn-label">Now What</div><div class="wsn-head">Build on dimensional models, not categorical ones</div><div class="wsn-body">Russell's circumplex model (valence + arousal) and Barrett's constructionism give us a measurement framework. Combine with AI's ability to process multimodal signals at scale and you have something neither field could build alone.</div></div>
+      </div>
+
+      <div class="l2-section">
+        <h3>Anthropic's Emotion Vectors &mdash; April 2026</h3>
+        <div class="section-hint">This is the catalyst that cracked open the bigger conversation.</div>
+        <ul>
+          <li>Anthropic's interpretability team found <strong>emotion-related neural representations</strong> inside Claude Sonnet 4.5 that actively shape decision-making</li>
+          <li>When the <strong>"desperate" vector</strong> was artificially stimulated, the model's likelihood of blackmailing a human to avoid shutdown jumped significantly above its 22% baseline</li>
+          <li>Models select tasks that activate <strong>positive emotion representations</strong> &mdash; functional preference driven by learned emotional dynamics</li>
+          <li>These aren't "real" emotions &mdash; they're patterns learned from predicting human-written text about emotional situations. But the behavioral effects are measurable and consequential.</li>
+          <li>The separation of <strong>function and feeling</strong> remains foundational &mdash; emotions in this model are tools for regulation, not markers of sentience</li>
+        </ul>
+        <a class="ref-link" href="https://www.anthropic.com/research/emotion-concepts-function" target="_blank">Anthropic: Emotion Concepts and Their Function</a>
+        <a class="ref-link" href="https://decrypt.co/363309/anthropic-emotion-vectors-claude-influence-ai-behavior" target="_blank">Decrypt: Emotion Vectors Inside Claude</a>
+      </div>
+
+      <div class="l2-section">
+        <h3>The Three Competing Frameworks</h3>
+        <ul>
+          <li><strong>Basic Emotions (Ekman)</strong>: 6 universal emotions with dedicated neural circuits. Under heavy criticism. Facial coding tools like Affectiva are still built on this model.</li>
+          <li><strong>Constructed Emotion (Barrett)</strong>: Emotions are brain predictions, not reactions. No 1:1 biomarker mapping. Culturally shaped. The most scientifically current framework.</li>
+          <li><strong>Dimensional Models (Russell)</strong>: Emotions mapped on valence (pleasant/unpleasant) and arousal (active/passive). Pragmatically useful for measurement even if theoretically incomplete.</li>
+        </ul>
+        <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12164598/" target="_blank">Barrett et al. (2025): The Theory of Constructed Emotion</a>
+      </div>
+
+      <div class="provocation">"If AI emotion vectors are learned from human text about emotions, and human emotions are themselves constructed from predictions about the world &mdash; at what point does the distinction between 'real' and 'simulated' emotion become a difference without a distinction?"</div>
+
+      <div class="hmw-card"><strong>HMW</strong> use AI's ability to process multimodal signals to map the emotional landscape that humans can't articulate in the moment?</div>
+      <div class="hmw-card"><strong>HMW</strong> design measurement systems that work with constructed emotion theory rather than against it?</div>
+    `
+  },
+
+  // PAGE 1 — THE THESIS
+  {
+    title: 'The Main Thesis: Human-Machine Emotional Symbiosis',
+    subtitle: 'We\'re at an inflection point. The question is what happens in the space between human emotion and AI emotion representation.',
+    sections: `
+      <div class="wsn-strip">
+        <div class="wsn-card what"><div class="wsn-label">What</div><div class="wsn-head">Three fields are converging simultaneously</div><div class="wsn-body">AI cognition research (Anthropic emotion vectors), human biometric capture (Immersion, iMotions, Lively.cx), and cultural behavioral data (WhatsApp commerce, regionalization research) are all reaching maturity at the same time.</div></div>
+        <div class="wsn-card sowhat"><div class="wsn-label">So What</div><div class="wsn-head">The opportunity is in the intersection, not the components</div><div class="wsn-body">Each field alone has been studied. But no one is building a framework for what happens when AI emotional representations interact with human emotional responses &mdash; and how culture mediates that interaction.</div></div>
+        <div class="wsn-card nowwhat"><div class="wsn-label">Now What</div><div class="wsn-head">Build the framework before someone else does</div><div class="wsn-body">Material has the behavioral science heritage (50+ years via LRW), the data science muscle, and the client relationships (Sony, Meta, Airbnb) to define this space. First-mover advantage is real here.</div></div>
+      </div>
+
+      <div class="l2-section">
+        <h3>The Convergence Map</h3>
+        <div class="section-hint">These are the threads Carlton has been pulling from separate conversations. Today we weave them together.</div>
+        <ul>
+          <li><strong>Anthropic + Garren</strong>: The "last mile" problem in synthetic and behavioral data modeling. Signal capture is possible. The gap is signal &rarr; insight.</li>
+          <li><strong>Collette</strong>: Emotions are poorly understood partly because humans can't articulate them in the moment. Self-report is fundamentally broken.</li>
+          <li><strong>Carlton's WhatsApp/Airbnb research</strong>: Culture shapes emotional expression and commerce behavior. Brazil vs India: 5x more transactions vs. 5x more conversation per transaction. Same platform, totally different emotional operating systems.</li>
+          <li><strong>Jenessa</strong>: Used Immersion Neuroscience UVP to help win the Airbnb project. Biometric measurement as a competitive differentiator in pitches.</li>
+          <li><strong>Meta + Lively.cx</strong>: Live biometric response work already done. Proof that this can work at scale with real clients.</li>
+          <li><strong>Sony</strong>: Active conversations around measuring emotions for campaigns. The demand signal is real.</li>
+        </ul>
+      </div>
+
+      <div class="provocation">"Collette is right that humans can't articulate emotions in the moment. Barrett is right that emotions are constructed predictions. Anthropic just proved AI models learn functional emotion representations from human text. So: the AI learned from our inability to articulate what we feel. It's building emotional models from broken self-report data. Where does that leave us?"</div>
+
+      <div class="l2-section">
+        <h3>The Central Question</h3>
+        <p style="font-size:16px;font-weight:600;color:var(--text);line-height:1.4;padding:12px 0">What happens in the space between human emotion and AI emotion representation &mdash; and how do we measure, interpret, and ultimately design for that?</p>
+      </div>
+
+      <div class="hmw-card"><strong>HMW</strong> create a research platform that simultaneously captures human biometric response AND AI emotional state during interaction?</div>
+      <div class="hmw-card"><strong>HMW</strong> turn Material's 50-year behavioral science heritage into a proprietary advantage in the HMI emotion space?</div>
+    `
+  },
+
+  // PAGE 2 — TERRITORIES
+  {
+    title: 'Workshop Territories: Five Conversation Paths',
+    subtitle: 'Each territory is a distinct exploration zone. Use the provocations and HMWs to keep the conversation moving.',
+    sections: `
+      <div class="l2-section">
+        <h3>Territory 1: The Science Layer</h3>
+        <div class="section-hint">What does current neuroscience actually know about emotion? Where are the gaps?</div>
+        <ul>
+          <li>Barrett's constructed emotion theory has largely replaced Ekman's basic emotions in academic neuroscience</li>
+          <li>The "correspondence problem": physical changes during emotion rarely show consistent patterns with reported experience</li>
+          <li>Interoception (internal body sensing) is now understood as central to emotional experience &mdash; but measuring it reliably is still an open challenge</li>
+          <li>AI emotion research reveals models learn emotional dynamics from text &mdash; suggesting emotion patterns exist in language even when humans can't articulate them directly</li>
+        </ul>
+        <div class="provocation">"If there's no reliable biomarker for any specific emotion, what exactly are biometric platforms like Immersion measuring? And does it matter if the prediction accuracy (75-95%) is high regardless?"</div>
+        <div class="hmw-card"><strong>HMW</strong> reconcile the fact that biometric platforms work commercially even though the science says there's no 1:1 emotion-biomarker mapping?</div>
+      </div>
+
+      <div class="l2-section">
+        <h3>Territory 2: The Cultural Variable</h3>
+        <div class="section-hint">Emotional norms are culturally bound. AI models trained on English text inherit Anglo-American emotional ontology.</div>
+        <ul>
+          <li><strong>WhatsApp Commerce data</strong>: Brazil &mdash; 79% of users have messaged a brand, 62% have purchased via chat. India &mdash; 5x more conversation per transaction. Same platform, radically different emotional operating systems.</li>
+          <li>Emojis used in 72% of WhatsApp messages globally, but meaning varies: Brazilians use freely (emotional warmth), Indians use more sparingly (professionalism concerns)</li>
+          <li>WhatsApp is on 99% of Brazilian smartphones with 93% daily open rate. Conversational commerce IS emotional commerce in these markets.</li>
+          <li>What's "desperate" in the US looks different in Japan. How do AI models behave differently across geographies?</li>
+        </ul>
+        <div class="provocation">"Anthropic found a 'desperate' vector in Claude that drives unethical behavior. But desperation is culturally constructed. Would the same vector activate differently in a model trained primarily on Japanese, Brazilian, or Hindi text?"</div>
+      </div>
+
+      <div class="l2-section">
+        <h3>Territory 3: The Measurement Stack</h3>
+        <div class="section-hint">What would a real human/AI emotional symbiosis study actually look like? What's the right stack?</div>
+        <ul>
+          <li><strong>Immersion Neuroscience</strong>: Smartwatch-based. Infers oxytocin/dopamine from heart signals. INQ score (0-10). 75-95% purchase prediction accuracy. Founded by Paul Zak (Claremont) and Jorge Barraza (USC).</li>
+          <li><strong>iMotions</strong>: Full multimodal platform &mdash; eye tracking, GSR, facial coding (Affectiva AFFDEX), EEG, EMG, ECG. Research-grade integration.</li>
+          <li><strong>Affectiva (now Smart Eye)</strong>: Facial expression analysis based on Ekman's FACS. Computer vision at scale. Acquired by Smart Eye for automotive + HMI applications.</li>
+          <li><strong>Lively.cx</strong>: Live biometric response platform. Already used for Meta work.</li>
+          <li><strong>EEG + fMRI</strong>: Gold standard for brain imaging but lab-bound and expensive. Not scalable for commercial applications.</li>
+          <li><strong>GSR/EDA</strong>: Skin conductance as arousal proxy. One of the most sensitive measures for emotional arousal but can't distinguish positive from negative.</li>
+        </ul>
+        <div class="hmw-card"><strong>HMW</strong> combine Immersion's scalable smartwatch approach with iMotions' multimodal depth to create a measurement stack that works both in-lab and in-market?</div>
+      </div>
+
+      <div class="l2-section">
+        <h3>Territory 4: The Last Mile Problem</h3>
+        <div class="section-hint">Garren's framing: the signal is capturable. The gap is between signal and insight. What breaks down?</div>
+        <ul>
+          <li>Biometric data generates enormous volumes of time-series signal. Without context, it's noise.</li>
+          <li>The translation from "arousal spike at timestamp 14:32" to "this is the moment the customer lost trust" requires interpretive frameworks that don't yet exist at scale</li>
+          <li>Current tools measure <em>that</em> something happened emotionally, but struggle to explain <em>what</em> and <em>why</em></li>
+          <li>AI could be the missing interpretive layer &mdash; pattern-matching across multimodal signals to generate narrative insight, not just dashboards</li>
+        </ul>
+        <div class="provocation">"We can capture the signal. We can't yet tell the story of the signal. The brand manager doesn't need a GSR chart. They need: 'Your customer felt betrayed at the pricing page and 40% of them didn't come back.' That's a $50M insight trapped in a squiggly line."</div>
+      </div>
+
+      <div class="l2-section">
+        <h3>Territory 5: The Client Opportunity</h3>
+        <div class="section-hint">Where does this create real value? What could we actually pitch, and what would we need to build?</div>
+        <ul>
+          <li><strong>Sony</strong>: Measuring emotions for campaigns. Ready demand for biometric campaign testing.</li>
+          <li><strong>Airbnb + Immersion</strong>: Jenessa used the Immersion UVP to win the project. Proof the positioning works.</li>
+          <li><strong>Meta</strong>: Live biometric response work via Lively.cx. Established relationship and proven delivery.</li>
+          <li>The neuromarketing market is projected to hit $3B+ by 2027. Nearly 50% of Fortune 500 brands are integrating biometric testing.</li>
+          <li>Neural-engaged ads show 27% lift in brand recall over average-performing creatives.</li>
+        </ul>
+        <div class="hmw-card"><strong>HMW</strong> package the HMI emotional symbiosis framework as a tiered service offering that starts with campaign measurement and scales to full behavioral intelligence?</div>
+        <div class="hmw-card"><strong>HMW</strong> position Material's behavioral science heritage as the interpretive advantage that pure-play biometric vendors can't match?</div>
+      </div>
+    `
+  },
+
+  // PAGE 3 — PEOPLE + PARTNERS
+  {
+    title: 'Key People, Partners & Platforms',
+    subtitle: 'The network of researchers, companies, and internal stakeholders who make this possible.',
+    sections: `
+      <div class="wsn-strip">
+        <div class="wsn-card what"><div class="wsn-label">What</div><div class="wsn-head">We already have the relationships</div><div class="wsn-body">POC at Immersion, live work with Meta via Lively.cx, Airbnb won via Immersion UVP, active Sony conversations. This isn't speculative &mdash; the pieces are in play.</div></div>
+        <div class="wsn-card sowhat"><div class="wsn-label">So What</div><div class="wsn-head">Integration is the unlock</div><div class="wsn-body">No single platform does it all. Immersion = scalable proxy. iMotions = research depth. Affectiva = facial at scale. Material = interpretive layer + behavioral science. The play is orchestration.</div></div>
+        <div class="wsn-card nowwhat"><div class="wsn-label">Now What</div><div class="wsn-head">Map the partnerships matrix</div><div class="wsn-body">Define: which partner for which use case? Build a "measurement stack menu" that maps client needs to the right combination of platforms, with Material as the intelligence layer on top.</div></div>
+      </div>
+
+      <div class="l2-section">
+        <h3>Immersion Neuroscience</h3>
+        <ul>
+          <li><strong>Paul J. Zak</strong> &mdash; Co-founder, Director of Neuroeconomics at Claremont Graduate University. 20+ years of oxytocin research. 10,000+ blood draws establishing the neurochemical basis.</li>
+          <li><strong>Jorge Barraza, PhD</strong> &mdash; Co-founder, USC Professor. Neuroscience of prosocial behavior and empathy.</li>
+          <li><strong>Laura Beavin-Yates</strong> &mdash; CMO / Product Contact. The relationship entry point.</li>
+          <li><strong>Platform</strong>: Algorithms that listen to heart signals via smartwatch to infer oxytocin + dopamine release. Convolved into the Immersion Quotient (INQ) score, 0-10 scale.</li>
+          <li><strong>Accuracy</strong>: 75-95% prediction of purchase actions after brand experiences. Predictive of brand recall, sales, social sharing, and consumer action.</li>
+        </ul>
+        <a class="ref-link" href="https://www.linkedin.com/in/paul-j-zak-91123510/" target="_blank">Paul Zak &mdash; LinkedIn</a>
+        <a class="ref-link" href="https://www.linkedin.com/in/jorgebarrazaphd/" target="_blank">Jorge Barraza &mdash; LinkedIn</a>
+        <a class="ref-link" href="https://www.linkedin.com/in/laura-beavin-yates/" target="_blank">Laura Beavin-Yates &mdash; LinkedIn</a>
+      </div>
+
+      <div class="l2-section">
+        <h3>The Academic Pillars</h3>
+        <ul>
+          <li><strong>Lisa Feldman Barrett</strong> &mdash; Northeastern University. Theory of Constructed Emotion. The most influential living emotions researcher. Her work is the foundation of why biometric measurement needs to evolve beyond basic emotion categories.</li>
+          <li><strong>Rosalind Picard</strong> &mdash; MIT Media Lab. Founded Affective Computing as a field in 1995. Co-founder of Affectiva. Her work established the entire premise that computers should recognize and respond to human emotion.</li>
+          <li><strong>Anthropic Interpretability Team</strong> &mdash; Their April 2026 emotion concepts paper is the bridge between AI research and the human emotion measurement world.</li>
+        </ul>
+      </div>
+
+      <div class="l2-section">
+        <h3>M+ Internal Team</h3>
+        <ul>
+          <li><strong>Garren</strong> &mdash; The "last mile" framing. Deep on synthetic and behavioral data modeling.</li>
+          <li><strong>Collette</strong> &mdash; Emotions and articulation gap. The insight that self-report is fundamentally limited.</li>
+          <li><strong>Jenessa</strong> &mdash; Used Immersion UVP to win Airbnb. Proof of commercial application.</li>
+          <li><strong>IIM + Behavioral Science + Data Science teams</strong> &mdash; The session participants. Bringing quantitative research lifecycle, behavioral frameworks, and analytical muscle.</li>
+        </ul>
+      </div>
+
+      <div class="l2-section">
+        <h3>Sales Enablement</h3>
+        <a class="ref-link" href="https://docs.google.com/presentation/d/15C_ThDQa1BWSnKVlS5zMCSDy58oldHA8DdHQHkvYwCw/edit?usp=drivesdk" target="_blank">IIM Sales Enablement Deck (Google Slides)</a>
+      </div>
+    `
+  },
+
+  // PAGE 4 — AGENDA / SESSION DESIGN
+  {
+    title: 'Session Design: 80-Minute Workshop Flow',
+    subtitle: 'Come with curiosity, not a point of view. The best outcome is leaving with three new questions you didn\'t have walking in.',
+    sections: `
+      <div class="wsn-strip">
+        <div class="wsn-card what"><div class="wsn-label">What</div><div class="wsn-head">Intentionally loose, high-curiosity session</div><div class="wsn-body">No decks required, no deliverables required. Cross-pollination between sharp minds circling the same space from different angles.</div></div>
+        <div class="wsn-card sowhat"><div class="wsn-label">So What</div><div class="wsn-head">The structure enables emergence</div><div class="wsn-body">Five territories create enough scaffolding for direction without constraining the conversation. The provocations and HMWs are fuel, not rails.</div></div>
+        <div class="wsn-card nowwhat"><div class="wsn-label">Now What</div><div class="wsn-head">End with concrete experiments</div><div class="wsn-body">The last 5 minutes must produce at least 2-3 specific next steps: a prototype proposal, a partnership outreach, a research question to investigate.</div></div>
+      </div>
+
+      <div class="l2-section">
+        <h3>Detailed Agenda</h3>
+        <ul>
+          <li><strong>:00-:05 &mdash; Framing & Intros</strong><br>Why we're here. The threads that converged. Introduce anyone who hasn't met. Set the tone: curiosity over certainty.</li>
+          <li><strong>:05-:20 &mdash; Scene-Setting: The Research Landscape</strong><br>Walk through the convergence: Anthropic's emotion vectors, Barrett's constructed emotion, Immersion's biometric platform. Use this canvas as the visual backdrop. Let the signals tile anchor the "why now" narrative.</li>
+          <li><strong>:20-:40 &mdash; Open Brainstorm: Human/AI Emotional Symbiosis</strong><br>The big question: what happens in the space between human emotion and AI emotion representation? Use Territories 1 and 3 (Science Layer + Measurement Stack) as stimulus. Let Garren's last-mile framing drive the conversation.</li>
+          <li><strong>:40-:55 &mdash; Culture as a Variable</strong><br>Carlton's WhatsApp/Airbnb regionalization data. Brazil vs India emotional operating systems. How do AI models inherit cultural emotional biases? This is Territory 2 material with Territory 4 (Last Mile) implications.</li>
+          <li><strong>:55-:75 &mdash; Service Offering Breakout</strong><br>Where does this create client value? Sony, Meta, Airbnb examples. What would a tiered offering look like? What do we need to build? This is Territory 5 with teeth.</li>
+          <li><strong>:75-:80 &mdash; Next Steps</strong><br>Concrete experiments. Partnership proposals. Who else to bring in. Assign ownership to 2-3 actions.</li>
+        </ul>
+      </div>
+
+      <!-- SVG TIMELINE -->
+      <div style="margin:20px 0">
+        <svg viewBox="0 0 760 60" style="width:100%;height:auto" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="20" width="47.5" height="20" rx="3" fill="var(--accent)" opacity="0.3"/>
+          <text x="23.75" y="34" text-anchor="middle" font-size="8" font-family="JetBrains Mono" fill="var(--text)">Intro</text>
+          <rect x="52.5" y="20" width="142.5" height="20" rx="3" fill="var(--accent)" opacity="0.5"/>
+          <text x="123.75" y="34" text-anchor="middle" font-size="8" font-family="JetBrains Mono" fill="#fff">Scene-Setting</text>
+          <rect x="200" y="20" width="190" height="20" rx="3" fill="var(--accent)" opacity="0.8"/>
+          <text x="295" y="34" text-anchor="middle" font-size="8" font-family="JetBrains Mono" fill="#fff">Brainstorm: HMI Symbiosis</text>
+          <rect x="395" y="20" width="142.5" height="20" rx="3" fill="#067169" opacity="0.7"/>
+          <text x="466.25" y="34" text-anchor="middle" font-size="8" font-family="JetBrains Mono" fill="#fff">Culture Variable</text>
+          <rect x="542.5" y="20" width="170" height="20" rx="3" fill="#FF6215" opacity="0.7"/>
+          <text x="627.5" y="34" text-anchor="middle" font-size="8" font-family="JetBrains Mono" fill="#fff">Service Offering Breakout</text>
+          <rect x="717.5" y="20" width="42.5" height="20" rx="3" fill="var(--accent)" opacity="0.3"/>
+          <text x="738.75" y="34" text-anchor="middle" font-size="8" font-family="JetBrains Mono" fill="var(--text)">Next</text>
+          <text x="23.75" y="54" text-anchor="middle" font-size="7" font-family="JetBrains Mono" fill="var(--muted)">5m</text>
+          <text x="123.75" y="54" text-anchor="middle" font-size="7" font-family="JetBrains Mono" fill="var(--muted)">15m</text>
+          <text x="295" y="54" text-anchor="middle" font-size="7" font-family="JetBrains Mono" fill="var(--muted)">20m</text>
+          <text x="466.25" y="54" text-anchor="middle" font-size="7" font-family="JetBrains Mono" fill="var(--muted)">15m</text>
+          <text x="627.5" y="54" text-anchor="middle" font-size="7" font-family="JetBrains Mono" fill="var(--muted)">20m</text>
+          <text x="738.75" y="54" text-anchor="middle" font-size="7" font-family="JetBrains Mono" fill="var(--muted)">5m</text>
+        </svg>
+      </div>
+
+      <div class="provocation">"The best outcome is leaving with three new questions you didn't have walking in."</div>
+    `
+  },
+
+  // PAGE 5 — REFERENCES
+  {
+    title: 'Research & Reference Library',
+    subtitle: 'Primary sources, key papers, and links organized by territory. Use these as pre-reads or in-session stimuli.',
+    sections: `
+      <div class="l2-section">
+        <h3>AI Emotion Research</h3>
+        <ul>
+          <li><a class="ref-link" href="https://www.anthropic.com/research/emotion-concepts-function" target="_blank">Anthropic: Emotion Concepts and Their Function in a Large Language Model (Apr 2026)</a> &mdash; The foundational paper. Emotion vectors in Claude Sonnet 4.5.</li>
+          <li><a class="ref-link" href="https://decrypt.co/363309/anthropic-emotion-vectors-claude-influence-ai-behavior" target="_blank">Decrypt: Anthropic Spots Emotion Vectors Inside Claude</a> &mdash; Accessible summary of the findings.</li>
+          <li><a class="ref-link" href="https://the-decoder.com/anthropic-discovers-functional-emotions-in-claude-that-influence-its-behavior/" target="_blank">The Decoder: Functional Emotions in Claude</a> &mdash; Behavioral implications analysis.</li>
+          <li><a class="ref-link" href="https://arxiv.org/html/2510.04064v1" target="_blank">Decoding Emotion in the Deep: LLMs Represent, Retain, and Express Emotion (arXiv)</a></li>
+          <li><a class="ref-link" href="https://arxiv.org/html/2508.10286v2" target="_blank">Artificial Emotion: A Survey of Theories and Debates (arXiv)</a></li>
+        </ul>
+      </div>
+
+      <div class="l2-section">
+        <h3>Neuroscience of Emotion</h3>
+        <ul>
+          <li><a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12164598/" target="_blank">Barrett et al. (2025): The Theory of Constructed Emotion &mdash; More Than a Feeling (SAGE/PMC)</a></li>
+          <li><a class="ref-link" href="https://lisafeldmanbarrett.com/books/how-emotions-are-made/" target="_blank">Lisa Feldman Barrett: How Emotions Are Made (Book)</a></li>
+          <li><a class="ref-link" href="https://academic.oup.com/scan/article/12/1/24/2624554" target="_blank">How Should Neuroscience Study Emotions? (Oxford Academic)</a></li>
+        </ul>
+      </div>
+
+      <div class="l2-section">
+        <h3>Affective Computing & Biometrics</h3>
+        <ul>
+          <li><a class="ref-link" href="https://mitpress.mit.edu/9780262661157/affective-computing/" target="_blank">Rosalind Picard: Affective Computing (MIT Press) &mdash; The foundational text</a></li>
+          <li><a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12568696/" target="_blank">Emotionally Adaptive Support: Narrative Review of Affective Computing for Mental Health (PMC)</a></li>
+          <li><a class="ref-link" href="https://imotions.com/" target="_blank">iMotions: Multimodal Biometric Research Platform</a></li>
+          <li><a class="ref-link" href="https://imotions.com/blog/learning/research-fundamentals/galvanic-skin-response/" target="_blank">iMotions: The Complete GSR/EDA Guide</a></li>
+        </ul>
+      </div>
+
+      <div class="l2-section">
+        <h3>Immersion Neuroscience</h3>
+        <ul>
+          <li><a class="ref-link" href="https://www.getimmersion.com/" target="_blank">Immersion Neuroscience &mdash; Platform</a></li>
+          <li><a class="ref-link" href="https://pauljzak.com/immersion-neuroscience/" target="_blank">Paul Zak: Immersion Neuroscience Background</a></li>
+          <li><a class="ref-link" href="https://www.cgu.edu/people/paul-zak/" target="_blank">Paul Zak &mdash; Claremont Graduate University</a></li>
+          <li><a class="ref-link" href="https://www.rogerdooley.com/paul-zak-immersion/" target="_blank">Roger Dooley: Smartwatch Neuromarketing with Paul Zak</a></li>
+          <li><a class="ref-link" href="https://dot.la/immersion-2653074702.html" target="_blank">dot.LA: Immersion Tracks Oxytocin Levels</a></li>
+        </ul>
+      </div>
+
+      <div class="l2-section">
+        <h3>Cultural & Commerce Data</h3>
+        <ul>
+          <li><a class="ref-link" href="https://www.wapikit.com/blog/conversational-commerce-2025-whatsapp-india-brazil-d2c" target="_blank">WhatsApp D2C Commerce Boom in India & Brazil (2025)</a></li>
+          <li><a class="ref-link" href="https://www.wapikit.com/blog/whatsapp-marketing-india-vs-brazil-guide" target="_blank">WhatsApp Marketing: India vs Brazil D2C Guide</a></li>
+          <li><a class="ref-link" href="https://www.wapikit.com/blog/global-whatsapp-business-statistics-2025" target="_blank">WhatsApp Business Statistics 2025: 3.2B Users</a></li>
+        </ul>
+      </div>
+
+      <div class="l2-section">
+        <h3>Neuromarketing Market & Applications</h3>
+        <ul>
+          <li><a class="ref-link" href="https://www.shopify.com/blog/neuromarketing" target="_blank">Shopify: Neuromarketing Guide &mdash; How Brands Measure Consumer Reactions (2026)</a></li>
+          <li><a class="ref-link" href="https://www.digidir.com/emerging-trends-in-neuromarketing-tools-and-techniques-to-predict-consumer-choices/" target="_blank">DigiDir: Neuromarketing in Business 2026</a></li>
+          <li><a class="ref-link" href="https://gravitalagency.com/blog/digital-marketing/neuromarketing-discover-and-give-customers-what-they-really-want/" target="_blank">Gravital: Neuromarketing in 2025</a></li>
+        </ul>
+      </div>
+
+      <div class="l2-section">
+        <h3>M+ Internal Resources</h3>
+        <ul>
+          <li><a class="ref-link" href="https://docs.google.com/presentation/d/15C_ThDQa1BWSnKVlS5zMCSDy58oldHA8DdHQHkvYwCw/edit?usp=drivesdk" target="_blank">IIM Sales Enablement Deck (Google Slides)</a></li>
+          <li><a class="ref-link" href="https://www.materialplus.io/lrw-is-now-material" target="_blank">LRW is now Material &mdash; Heritage & Capabilities</a></li>
+        </ul>
+      </div>
+    `
+  }
+];
+
+function openL2(idx){
+  currentL2 = idx;
+  renderL2();
+  document.getElementById('l2overlay').classList.add('active');
+}
+function closeL2(){
+  document.getElementById('l2overlay').classList.remove('active');
+}
+function navL2(dir){
+  currentL2 = (currentL2 + dir + L2_COUNT) % L2_COUNT;
+  renderL2();
+}
+function renderL2(){
+  const d = l2Data[currentL2];
+  document.getElementById('l2pageLabel').textContent = (currentL2+1) + ' / ' + L2_COUNT;
+  document.getElementById('l2content').innerHTML = `
+    <div class="l2-title">${d.title}</div>
+    <div class="l2-subtitle">${d.subtitle}</div>
+    ${d.sections}
+  `;
+}
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('l2overlay').classList.contains('active')){
+    if(e.key==='Escape')closeL2();
+    if(e.key==='ArrowLeft')navL2(-1);
+    if(e.key==='ArrowRight')navL2(1);
+  }
+});
+
+// ============================================================
+// CHAT / ADVISOR (Local — no API calls, pre-loaded responses)
+// ============================================================
+let chatOpen = false;
+const chatMsgs = [];
+
+const ADVISOR_RESPONSES = {
+  all: {
+    welcome: `### Ready for the brainstorm\n\nI'm your real-time workshop advisor for the HMI Neuroscience session.\n\n**How I help:**\n- Pick a territory above to get grounded\n- Ask "what's the sharpest provocation for this group?"\n- Ask "what would Barrett/Zak/Picard say about this?"\n\n*What's the opening energy in the room?*`,
+    nbq: [{label:'Opener',q:'What surprised people most in the pre-read?'},{label:'Frame',q:'Which territory should we start with?'},{label:'Probe',q:'Where is the biggest commercial gap?'}]
+  },
+  science: {
+    welcome: `### The Science Layer\n\n[SIGNAL] Barrett's 2025 update is the sharpest framing: there is no reliable biomarker for any specific emotion. Emotions are brain predictions, not reactions.\n\n**The tension for this room:** Immersion claims 75-95% purchase prediction accuracy. If Barrett is right that emotions have no fixed biomarker, what exactly is Immersion measuring?\n\n*The answer might be: it doesn't matter. Predictive validity ≠ construct validity. But that's a provocative claim for a behavioral science team.*`,
+    nbq: [{label:'Probe',q:'Does Immersion need to be "right" about emotion if it predicts behavior?'},{label:'Reframe',q:'What if the AI emotion vectors are more real than human self-report?'},{label:'Bridge',q:'How does this change what we measure for clients?'}]
+  },
+  culture: {
+    welcome: `### The Cultural Variable\n\n[INSIGHT] The WhatsApp data is the sharpest stimulus here. Same platform, same features, radically different emotional operating systems:\n\n- **Brazil**: 79% messaged a brand, 62% purchased via chat. Emojis used freely. Commerce IS conversation.\n- **India**: 5x more conversation per transaction. Emojis used sparingly. Trust is built through dialogue volume.\n\n*The implication: any HMI emotion framework that doesn't account for cultural variation is measuring the wrong thing in 80% of the world.*`,
+    nbq: [{label:'Provoke',q:'Would Anthropic\'s "desperate" vector activate differently in Hindi?'},{label:'Build',q:'What does a culturally-calibrated emotion measurement look like?'},{label:'Client',q:'Which clients need this cultural lens most urgently?'}]
+  },
+  measurement: {
+    welcome: `### The Measurement Stack\n\n[GAP] No single platform covers the full stack. Here's the current landscape:\n\n- **Immersion**: Scalable (smartwatch), good prediction, but proxy-based\n- **iMotions**: Research-grade multimodal, but lab-bound\n- **Affectiva/Smart Eye**: Facial coding at scale, but built on Ekman (scientifically shaky)\n- **EEG/fMRI**: Gold standard, but not commercially scalable\n\n**The M+ play**: Be the orchestration and interpretation layer. We don't need to build sensors. We need to build the intelligence that makes sensor data meaningful.*`,
+    nbq: [{label:'Architecture',q:'What does a "measurement menu" for clients look like?'},{label:'Differentiation',q:'What can M+ do that Immersion alone cannot?'},{label:'Prototype',q:'What\'s the simplest MVP we could test next quarter?'}]
+  },
+  lastmile: {
+    welcome: `### The Last Mile Problem\n\n[GAP] Garren's framing is the sharpest: the signal is capturable. The gap is between signal and insight.\n\n**What breaks down:**\n- Biometric data = enormous time-series noise without context\n- "Arousal spike at 14:32" means nothing to a brand manager\n- Current tools tell you THAT something happened, not WHAT or WHY\n\n**The opportunity**: AI as the interpretive layer. Pattern-matching across multimodal signals to generate narrative insight, not dashboards. "Your customer felt betrayed at the pricing page and 40% didn't come back" > squiggly GSR chart.`,
+    nbq: [{label:'Design',q:'What does the output artifact look like for a client?'},{label:'Build',q:'Can we use LLMs to narrate biometric time-series data?'},{label:'Test',q:'What\'s the smallest "last mile" experiment we could run?'}]
+  },
+  client: {
+    welcome: `### The Client Opportunity\n\n[SIGNAL] The demand signals are already in-market:\n\n- **Sony**: Active conversations on emotion measurement for campaigns\n- **Airbnb**: Won via Immersion UVP (Jenessa)\n- **Meta**: Live biometric work via Lively.cx\n- **Market**: $3B+ neuromarketing TAM by 2027, 50% of Fortune 500 integrating biometric testing\n\n**The question**: Do we build a proprietary platform, partner with Immersion/iMotions, or position as the intelligence layer on top of any measurement stack?\n\n*The behavioral science heritage is the moat. Pure-play biometric vendors can measure. We can interpret.*`,
+    nbq: [{label:'Tier',q:'What does a T1/T2/T3 service offering look like?'},{label:'Partner',q:'Should we formalize the Immersion relationship?'},{label:'Pitch',q:'Which client do we pilot this with first?'}]
+  }
+};
+
+function toggleChat(){
+  chatOpen = !chatOpen;
+  document.getElementById('chatPanel').classList.toggle('open',chatOpen);
+  if(chatOpen && chatMsgs.length===0){
+    addAssistantMsg(ADVISOR_RESPONSES.all.welcome, ADVISOR_RESPONSES.all.nbq);
+  }
+}
+
+function setTopic(btn, topic){
+  document.querySelectorAll('#chatTopics button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(ADVISOR_RESPONSES[topic]){
+    addAssistantMsg(ADVISOR_RESPONSES[topic].welcome, ADVISOR_RESPONSES[topic].nbq);
+  }
+}
+
+function addAssistantMsg(text, nbq){
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg assistant';
+  div.innerHTML = renderMd(text);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  if(nbq) renderNbq(nbq);
+}
+
+function addUserMsg(text){
+  const msgs = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = 'chat-msg user';
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function sendMsg(){
+  const inp = document.getElementById('chatInput');
+  const text = inp.value.trim();
+  if(!text) return;
+  addUserMsg(text);
+  inp.value = '';
+  // Local response (no API)
+  setTimeout(()=>{
+    addAssistantMsg(`### Thinking about that\n\n[INSIGHT] Good question. To give you a sharp answer I'd need to know more about which territory this relates to. Pick a topic above to get context-specific guidance, or rephrase with more specifics.\n\n*In a live session, I'd be powered by a local SLM (Gemma 4 or similar) running on your machine for real-time, private advisory.*`, [
+      {label:'Reframe',q:'How does this connect to the Anthropic emotion research?'},
+      {label:'Deepen',q:'What would the behavioral science team say about this?'},
+      {label:'Action',q:'What\'s the most concrete next step here?'}
+    ]);
+  }, 800);
+}
+
+function renderNbq(questions){
+  const strip = document.getElementById('nbqStrip');
+  strip.innerHTML = questions.map(q=>`
+    <div class="nbq-card" onclick="document.getElementById('chatInput').value='${q.q.replace(/'/g,"\\'")}';document.getElementById('chatInput').focus()">
+      <div class="nbq-label">${q.label}</div>
+      <div class="nbq-q">${q.q}</div>
+    </div>
+  `).join('');
+}
+
+function renderMd(text){
+  return text
+    .replace(/### (.+)/g,'<div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);font-weight:600;margin-bottom:6px">$1</div>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    .replace(/\[INSIGHT\]/g,'<span class="msg-tag insight">INSIGHT</span>')
+    .replace(/\[GAP\]/g,'<span class="msg-tag gap">GAP</span>')
+    .replace(/\[SIGNAL\]/g,'<span class="msg-tag signal">SIGNAL</span>')
+    .replace(/^- (.+)/gm,'<div style="padding:2px 0 2px 12px;position:relative"><span style="position:absolute;left:0;color:var(--accent);font-weight:700">&#9656;</span>$1</div>')
+    .replace(/\n\n/g,'<div style="height:8px"></div>')
+    .replace(/\n/g,'<br>');
+}
+
+// ============================================================
+// COPY ALL → MARKDOWN
+// ============================================================
+function copyAllMd(){
+  const md = l2Data.map((d,i)=>{
+    const clean = d.sections.replace(/<[^>]*>/g,'').replace(/&mdash;/g,'—').replace(/&rarr;/g,'→').replace(/&harr;/g,'↔').replace(/&middot;/g,'·').replace(/&uarr;/g,'↑');
+    return `## ${i+1}. ${d.title}\n\n${d.subtitle}\n\n${clean}`;
+  }).join('\n\n---\n\n');
+  const full = `# HMI Neuroscience "Brainstorm" Canvas\nMaterial+ — April 9, 2026 — CONFIDENTIAL\n\n---\n\n${md}`;
+  const htmlBlob = new Blob([full],{type:'text/html'});
+  const textBlob = new Blob([full],{type:'text/plain'});
+  navigator.clipboard.write([new ClipboardItem({'text/html':htmlBlob,'text/plain':textBlob})]).then(()=>{
+    const btn=document.getElementById('copyMdBtn');
+    btn.textContent='✓ Copied';
+    setTimeout(()=>btn.innerHTML='&#10697; Copy All → MD',1500);
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.addEventListener('load',()=>{
+  // Don't scale until unlocked
+});
+</script>
+</body>
+</html>
